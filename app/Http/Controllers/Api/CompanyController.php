@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Requests\CompanyRequest;
+use App\Http\Resources\CompanyResource;
 use App\Models\Company;
 use App\Traits\FileUpload;
 use Exception;
@@ -19,11 +20,11 @@ class CompanyController extends BaseController
         $this->company = $company;
     }
 
-     public function index()
+    public function index()
     {
         try {
             $companies = $this->company->with('category')->paginate(10);
-            return $this->sentPaginationResponse($companies,10,'Companies List');
+            return $this->sentPaginationResponse(CompanyResource::collection($companies),10,'Companies List');
         }catch(Exception $e){
            return $this->sentServerError('Error in company list',$e->getMessage());
         }
@@ -32,7 +33,7 @@ class CompanyController extends BaseController
     public function show($id){
         try {
             $company = $this->company->with('category')->findOrFail($id);
-            return $this->sentResponse($company,'Company fetched successfully.');
+            return $this->sentResponse(new CompanyResource($company),'Company fetched successfully.');
         }catch(ModelNotFoundException $e){
             return $this->sentError('Company not found', 404);
         }catch(Exception $e){
@@ -50,7 +51,7 @@ class CompanyController extends BaseController
 
             $company = $this->company->create($data);
 
-            return $this->sentResponse($company,'Company stored successfully.');
+            return $this->sentResponse(new CompanyResource($company),'Company stored successfully.');
         }catch(Exception $e){
            return $this->sentServerError('Error in company store',$e->getMessage());
 
@@ -70,7 +71,7 @@ class CompanyController extends BaseController
 
             $company->update($data);
 
-            return $this->sentResponse($company,'Company updated successfully.');
+            return $this->sentResponse(new CompanyResource($company),'Company updated successfully.');
         }catch(ModelNotFoundException $e){
             return $this->sentError('Company not found', 404);
         }catch(Exception $e){

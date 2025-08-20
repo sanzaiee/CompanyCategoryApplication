@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Resources\CategoryResource;
 use App\Models\CompanyCategory;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -19,7 +20,7 @@ class CompanyCategoryController extends BaseController
     {
         try {
             $categories = $this->category->paginate(10);
-            return $this->sentPaginationResponse($categories,10,'Categories List');
+            return $this->sentPaginationResponse(CategoryResource::collection($categories),10,'Categories List');
         }catch(Exception $e){
            return $this->sentServerError('Error in category list',$e->getMessage());
         }
@@ -29,7 +30,7 @@ class CompanyCategoryController extends BaseController
     {
         try {
             $category = $this->category->with('companies')->findOrFail($id);
-            return $this->sentResponse($category,'Category fetched successfully.');
+            return $this->sentResponse(new CategoryResource($category),'Category fetched successfully.');
          }catch(ModelNotFoundException $e){
             return $this->sentError('Category not found', 404);
          }catch(Exception $e){
@@ -45,7 +46,7 @@ class CompanyCategoryController extends BaseController
 
             $category = $this->category->create($request->only('title'));
 
-            return $this->sentResponse($category,'Category stored successfully.');
+            return $this->sentResponse(new CategoryResource($category),'Category stored successfully.');
          }catch(Exception $e){
            return $this->sentServerError('Error in category store',$e->getMessage());
 
@@ -62,7 +63,7 @@ class CompanyCategoryController extends BaseController
             $category = $this->category->findOrFail($id);
             $category->update($request->only('title'));
 
-            return $this->sentResponse($category,'Category updated successfully.');
+            return $this->sentResponse(new CategoryResource($category),'Category updated successfully.');
         }catch(ModelNotFoundException $e){
             return $this->sentError('Category not found', 404);
          }catch(Exception $e){
@@ -91,7 +92,7 @@ class CompanyCategoryController extends BaseController
                 $query->where('title','like',"%{$keyword}%");
             })->paginate(10);
 
-            return $this->sentPaginationResponse($categories,10,'Categories result');
+            return $this->sentPaginationResponse(CategoryResource::collection($categories),10,'Categories result');
         }catch(Exception $e){
            return $this->sentServerError('Error in category searching',$e->getMessage());
         }
